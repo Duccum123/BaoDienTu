@@ -2,13 +2,13 @@
 <%@include file="/common/taglib.jsp"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
-<div id="navbar" class="navbar navbar-default          ace-save-state">
+<div id="navbar" class="navbar navbar-default ace-save-state" style="background-color: #01579b;">
     <div class="navbar-container ace-save-state" id="navbar-container">
         <div class="navbar-header pull-left">
             <a href="#" class="navbar-brand">
                 <small>
                     <i class="fa fa-leaf"></i>
-                    Trang quản trị
+                    Trang Admin
                 </small>
             </a>
         </div>
