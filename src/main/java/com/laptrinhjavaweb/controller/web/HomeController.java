@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
 
-@WebServlet(urlPatterns ={"/trang-chu","/dang-nhap","/thoat"})
+@WebServlet(urlPatterns = {"/trang-chu","/dang-nhap","/thoat","/news"})
 public class HomeController extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -32,11 +32,11 @@ public class HomeController extends HttpServlet {
 
 	@Inject
 	private ICategoryService categoryService;
-
+	
 	@Inject
 	private IUserService userService;
 
-	private ResourceBundle resourceBundle = ResourceBundle.getBundle("message");
+	ResourceBundle resourceBundle = ResourceBundle.getBundle("message");
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -46,11 +46,22 @@ public class HomeController extends HttpServlet {
 			handleLoginGet(req, resp);
 		} else if (action != null && action.equals("logout")) {
 			handleLogout(req, resp);
+		} else if("read".equals(action)){
+			RequestDispatcher rd = req.getRequestDispatcher("/views/web/news.jsp");
+			rd.forward(req, resp);
 		} else {
 			handleHomePage(req, resp);
 		}
 	}
 
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String action = req.getParameter("action");
+
+		if (action != null && action.equals("login")) {
+			handleLoginPost(req, resp);
+		}
+	}
 	private void handleLoginGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String alert = req.getParameter("alert");
 		String message = req.getParameter("message");
@@ -91,16 +102,6 @@ public class HomeController extends HttpServlet {
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/web/home.jsp");
 		dispatcher.forward(req, resp);
 	}
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		String action = req.getParameter("action");
-
-		if (action != null && action.equals("login")) {
-			handleLoginPost(req, resp);
-		}
-	}
-
 	private void handleLoginPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		UserModel userModel = FormUtil.toModel(UserModel.class, req);
 		userModel = userService.findByUserNameAndPasswordAndStatus(
