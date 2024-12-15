@@ -1,7 +1,12 @@
 package com.laptrinhjavaweb.controller.web;
 
+import com.laptrinhjavaweb.model.CategoryModel;
+import com.laptrinhjavaweb.model.NewModel;
 import com.laptrinhjavaweb.model.UserModel;
+import com.laptrinhjavaweb.paging.PageRequest;
+import com.laptrinhjavaweb.paging.Pageble;
 import com.laptrinhjavaweb.service.ICategoryService;
+import com.laptrinhjavaweb.service.INewService;
 import com.laptrinhjavaweb.service.IUserService;
 import com.laptrinhjavaweb.utils.FormUtil;
 import com.laptrinhjavaweb.utils.SessionUtil;
@@ -14,60 +19,146 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 @WebServlet(urlPatterns = {"/trang-chu","/dang-nhap","/thoat","/news"})
 public class HomeController extends HttpServlet {
-	
+
+	private static final long serialVersionUID = 1L;
+
+	@Inject
+	private INewService newService;
+
 	@Inject
 	private ICategoryService categoryService;
-	
+
 	@Inject
 	private IUserService userService;
-	
-	private static final long serialVersionUID = 2686801510274002166L;
 
 	ResourceBundle resourceBundle = ResourceBundle.getBundle("message");
-	
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String action = request.getParameter("action");
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String action = req.getParameter("action");
+
 		if (action != null && action.equals("login")) {
-			String alert = request.getParameter("alert");
-			String message = request.getParameter("message");
-			if (message != null && alert != null) {
-				request.setAttribute("message", resourceBundle.getString(message));
-				request.setAttribute("alert", alert);
-			}
-			RequestDispatcher rd = request.getRequestDispatcher("/views/login.jsp");
-			rd.forward(request, response);
+			handleLoginGet(req, resp);
 		} else if (action != null && action.equals("logout")) {
-			SessionUtil.getInstance().removeValue(request, "USERMODEL");
-			response.sendRedirect(request.getContextPath()+"/trang-chu");
-		} else if("read".equals(action)){
-			RequestDispatcher rd = request.getRequestDispatcher("/views/web/news.jsp");
-			rd.forward(request, response);
-		}else {
-			request.setAttribute("categories", categoryService.findAll());
-			RequestDispatcher rd = request.getRequestDispatcher("/views/web/home.jsp");
-			rd.forward(request, response);
+			handleLogout(req, resp);
+		} else if("sport".equals(action)){
+			handleHomePageByCategory(req, resp, 6);
+		} else if("economy".equals(action)){
+			handleHomePageByCategory(req, resp, 7);
+		} else if("entertainment".equals(action)){
+			handleHomePageByCategory(req, resp, 8);
+		}
+		else {
+			handleHomePage(req, resp);
 		}
 	}
-	
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String action = request.getParameter("action");
+
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String action = req.getParameter("action");
+
 		if (action != null && action.equals("login")) {
-			UserModel model = FormUtil.toModel(UserModel.class, request);
-			model = userService.findByUserNameAndPasswordAndStatus(model.getUserName(), model.getPassword(), 1);
-			if (model != null) {
-				SessionUtil.getInstance().putValue(request, "USERMODEL", model);
-				if (model.getRole().getCode().equals("USER")) {
-					response.sendRedirect(request.getContextPath()+"/trang-chu");
-				} else if (model.getRole().getCode().equals("ADMIN")) {
-					response.sendRedirect(request.getContextPath()+"/admin-home");
-				}
-			} else {
-				response.sendRedirect(request.getContextPath()+"/dang-nhap?action=login&message=username_password_invalid&alert=danger");
+			handleLoginPost(req, resp);
+		} else if(action.equals("read")){
+			NewModel news = newService.findOne(Integer.parseInt(req.getParameter("idNews")));
+			req.setAttribute("news", news);
+			RequestDispatcher rd = req.getRequestDispatcher("/views/web/news.jsp");
+			rd.forward(req, resp);
+		}
+	}
+	private void handleLoginGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String alert = req.getParameter("alert");
+		String message = req.getParameter("message");
+		if (alert != null && message != null) {
+			req.setAttribute("message", resourceBundle.getString(message));
+			req.setAttribute("alert", alert);
+		}
+		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/login.jsp");
+		dispatcher.forward(req, resp);
+	}
+
+	private void handleLogout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		SessionUtil.getInstance().removeValue(req, "USERMODEL");
+		resp.sendRedirect(req.getContextPath() + "/trang-chu");
+	}
+
+	private void handleHomePage(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String pageStr = req.getParameter("page");
+		String limitStr = req.getParameter("limit");
+
+		int page = pageStr != null ? Integer.parseInt(pageStr) : 1;
+		int limit = limitStr != null ? Integer.parseInt(limitStr) : 10;
+
+		Pageble pageble = new PageRequest(page, limit, null);
+
+
+		List<NewModel> newsList = newService.findAll(pageble);
+		List<CategoryModel> CategoryList = categoryService.findAll();
+
+		int totalItems = newService.getTotalItem();
+		int totalPages = (int) Math.ceil((double) totalItems / limit);
+
+		req.setAttribute("newsList", newsList);
+		req.setAttribute("totalPages", totalPages);
+		req.setAttribute("currentPage", page);
+		req.setAttribute("categories", categoryService.findAll());
+		req.setAttribute("categoryList", CategoryList);
+		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/web/home.jsp");
+		dispatcher.forward(req, resp);
+	}
+	private void handleLoginPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		UserModel userModel = FormUtil.toModel(UserModel.class, req);
+		userModel = userService.findByUserNameAndPasswordAndStatus(
+				userModel.getUserName(),
+				userModel.getPassword(),
+				1
+		);
+
+		if (userModel != null) {
+			SessionUtil.getInstance().putValue(req, "USERMODEL", userModel);
+			if (userModel.getRole().getCode().equals("USER")) {
+				resp.sendRedirect(req.getContextPath() + "/trang-chu");
+			} else if (userModel.getRole().getCode().equals("ADMIN")) {
+				resp.sendRedirect(req.getContextPath() + "/admin-home");
+			}
+		} else {
+			resp.sendRedirect(req.getContextPath() + "/login?action=login&message=username_password_invalid&alert=danger");
+		}
+	}
+	public void handleHomePageByCategory(HttpServletRequest req, HttpServletResponse resp, int id) throws ServletException, IOException {
+		String pageStr = req.getParameter("page");
+		String limitStr = req.getParameter("limit");
+
+		int page = pageStr != null ? Integer.parseInt(pageStr) : 1;
+		int limit = limitStr != null ? Integer.parseInt(limitStr) : 10;
+
+		Pageble pageble = new PageRequest(page, limit, null);
+
+
+		List<NewModel> newsList = newService.findAll(pageble);
+		List<NewModel> newsListByCategory = new ArrayList<NewModel>();
+		for (NewModel newModel : newsList) {
+			if (newModel.getCategoryId() == id) {
+				newsListByCategory.add(newModel);
 			}
 		}
+
+		List<CategoryModel> CategoryList = categoryService.findAll();
+
+		int totalItems = newService.getTotalItem();
+		int totalPages = (int) Math.ceil((double) totalItems / limit);
+
+		req.setAttribute("newsList", newsListByCategory);
+		req.setAttribute("totalPages", totalPages);
+		req.setAttribute("currentPage", page);
+		req.setAttribute("categoryList", CategoryList);
+		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/web/home.jsp");
+		dispatcher.forward(req, resp);
 	}
 }

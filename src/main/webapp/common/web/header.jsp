@@ -9,19 +9,19 @@
     <div class="collapse navbar-collapse" id="navbarResponsive">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Trang chủ</a>
+          <a class="nav-link active" aria-current="page" href="/new-jdbc-12-month-2018/">Trang chủ</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Tin Nóng</a>
+          <a class="nav-link" href="/new-jdbc-12-month-2018/">Tin Nóng</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Thể Thao</a>
+          <a class="nav-link" href="/new-jdbc-12-month-2018/trang-chu?action=sport">Thể Thao</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Kinh Tế</a>
+          <a class="nav-link" href="/new-jdbc-12-month-2018/trang-chu?action=economy">Kinh Tế</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Giải Trí</a>
+          <a class="nav-link" href="/new-jdbc-12-month-2018/trang-chu?action=entertainment">Giải Trí</a>
         </li>
       </ul>
       <form class="d-flex" role="search">

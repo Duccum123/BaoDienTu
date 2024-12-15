@@ -1,3 +1,5 @@
+<%@ page import="com.laptrinhjavaweb.model.NewModel" %>
+<%@ page import="java.util.List" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,14 +41,30 @@
   <div class="row">
     <!-- Featured Article -->
     <div class="col-md-12">
+      <%
+        List<NewModel> newsList = (List<NewModel>) request.getAttribute("newsList");
+
+        for(int i = 0; i <newsList.size(); i++){
+
+          %>
+
       <div class="card mb-4">
-        <img src="https://via.placeholder.com/800x400" class="card-img-top" alt="Tin nổi bật">
-        <div class="card-body">
-          <h5 class="card-title">Tin Nổi Bật</h5>
-          <p class="card-text">Đây là phần nội dung của tin nổi bật. Cập nhật thông tin chi tiết tại đây.</p>
-          <a href="#" class="btn btn-primary">Đọc thêm</a>
-        </div>
+        <img src="<%=newsList.get(i).getThumbnail()%>" class="card-img-top" alt="Tin nổi bật">
+        <form class="card-body" method="POST" action="/new-jdbc-12-month-2018/news?action=read">
+          <h5 class="card-title"><%=newsList.get(i).getTitle()%></h5>
+          <p class="card-text"><%=newsList.get(i).getShortDescription()%></p>
+          <input type="hidden" value="<%=newsList.get(i).getId()%>" name="idNews"/>
+          <button class="btn btn-primary" type="submit">Đọc thêm</button>
+        </form>
       </div>
+
+          <%
+
+
+        }
+      %>
+
+
     </div>
 
     <!-- Sidebar -->
