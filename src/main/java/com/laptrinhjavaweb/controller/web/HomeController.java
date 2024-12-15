@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
-@WebServlet(urlPatterns = {"/trang-chu","/dang-nhap","/thoat"})
+@WebServlet(urlPatterns = {"/trang-chu","/dang-nhap","/thoat","/news"})
 public class HomeController extends HttpServlet {
 	
 	@Inject
@@ -43,7 +43,10 @@ public class HomeController extends HttpServlet {
 		} else if (action != null && action.equals("logout")) {
 			SessionUtil.getInstance().removeValue(request, "USERMODEL");
 			response.sendRedirect(request.getContextPath()+"/trang-chu");
-		} else {
+		} else if("read".equals(action)){
+			RequestDispatcher rd = request.getRequestDispatcher("/views/web/news.jsp");
+			rd.forward(request, response);
+		}else {
 			request.setAttribute("categories", categoryService.findAll());
 			RequestDispatcher rd = request.getRequestDispatcher("/views/web/home.jsp");
 			rd.forward(request, response);
