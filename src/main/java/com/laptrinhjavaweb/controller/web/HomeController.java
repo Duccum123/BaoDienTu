@@ -47,25 +47,52 @@ public class HomeController extends HttpServlet {
 			handleLoginGet(req, resp);
 		} else if (action != null && action.equals("logout")) {
 			handleLogout(req, resp);
-		} else if("sport".equals(action)){
-			handleHomePageByCategory(req, resp, 6);
-		} else if("economy".equals(action)){
-			handleHomePageByCategory(req, resp, 7);
-		} else if("entertainment".equals(action)){
-			handleHomePageByCategory(req, resp, 8);
-		}
-		else {
+		} else if("category".equals(action)){
+			handleHomePageByCategory(req, resp);
+		} else {
 			handleHomePage(req, resp);
 		}
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.setCharacterEncoding("UTF-8");
 		String action = req.getParameter("action");
 
 		if (action != null && action.equals("login")) {
 			handleLoginPost(req, resp);
-		} else if(action.equals("read")){
+		} else if("search".equals(action)){
+			String search = req.getParameter("search");
+			System.out.println(search);
+			String pageStr = req.getParameter("page");
+			String limitStr = req.getParameter("limit");
+
+			int page = pageStr != null ? Integer.parseInt(pageStr) : 1;
+			int limit = limitStr != null ? Integer.parseInt(limitStr) : 10;
+
+			Pageble pageble = new PageRequest(page, limit, null);
+
+
+			List<NewModel> newsList = newService.findAll(pageble);
+			List<NewModel> newsListByCategory = new ArrayList<NewModel>();
+			for (NewModel newModel : newsList) {
+				if (newModel.getTitle().contains(search)) {
+					newsListByCategory.add(newModel);
+				}
+			}
+
+			List<CategoryModel> CategoryList = categoryService.findAll();
+
+			int totalItems = newService.getTotalItem();
+			int totalPages = (int) Math.ceil((double) totalItems / limit);
+
+			req.setAttribute("newsList", newsListByCategory);
+			req.setAttribute("totalPages", totalPages);
+			req.setAttribute("currentPage", page);
+			req.setAttribute("categoryList", CategoryList);
+			RequestDispatcher dispatcher = req.getRequestDispatcher("/views/web/home.jsp");
+			dispatcher.forward(req, resp);
+		} else if("read".equals(action)){
 			NewModel news = newService.findOne(Integer.parseInt(req.getParameter("idNews")));
 			req.setAttribute("news", news);
 			RequestDispatcher rd = req.getRequestDispatcher("/views/web/news.jsp");
@@ -131,9 +158,10 @@ public class HomeController extends HttpServlet {
 			resp.sendRedirect(req.getContextPath() + "/login?action=login&message=username_password_invalid&alert=danger");
 		}
 	}
-	public void handleHomePageByCategory(HttpServletRequest req, HttpServletResponse resp, int id) throws ServletException, IOException {
+	public void handleHomePageByCategory(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String pageStr = req.getParameter("page");
 		String limitStr = req.getParameter("limit");
+		int id = Integer.parseInt(req.getParameter("id"));
 
 		int page = pageStr != null ? Integer.parseInt(pageStr) : 1;
 		int limit = limitStr != null ? Integer.parseInt(limitStr) : 10;
@@ -144,7 +172,7 @@ public class HomeController extends HttpServlet {
 		List<NewModel> newsList = newService.findAll(pageble);
 		List<NewModel> newsListByCategory = new ArrayList<NewModel>();
 		for (NewModel newModel : newsList) {
-			if (newModel.getCategoryId() == id) {
+			if (newModel.getCategoryId()==id) {
 				newsListByCategory.add(newModel);
 			}
 		}

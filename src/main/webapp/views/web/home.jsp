@@ -49,7 +49,7 @@
           %>
 
       <div class="card mb-4">
-        <img src="<%=newsList.get(i).getThumbnail()%>" class="card-img-top" alt="Tin nổi bật">
+        <img style="height: 600px;" src="<%=newsList.get(i).getThumbnail()%>" class="card-img-top" alt="Tin nổi bật">
         <form class="card-body" method="POST" action="/new-jdbc-12-month-2018/news?action=read">
           <h5 class="card-title"><%=newsList.get(i).getTitle()%></h5>
           <p class="card-text"><%=newsList.get(i).getShortDescription()%></p>
